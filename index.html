@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ChuksTECH Computer</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--tx:#12182b;--mut:#5c6580;--ac:#1f6feb;--bd:#dfe3ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1220;--card:#171d31;--tx:#eef1fb;--mut:#9aa3c0;--ac:#5b9bff;--bd:#2a3250}}
+:root[data-theme="dark"]{--bg:#0e1220;--card:#171d31;--tx:#eef1fb;--mut:#9aa3c0;--ac:#5b9bff;--bd:#2a3250}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+.w{max-width:960px;margin:0 auto;padding:16px}
+header{background:var(--ac);color:#fff;border-radius:16px;padding:22px 18px;margin-bottom:16px}
+header h1{margin:0 0 4px;font-size:1.7rem}
+header p{margin:2px 0;opacity:.95}
+header a{color:#fff;font-weight:600}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:16px}
+.box h2{margin:0 0 10px;font-size:1.05rem}
+label{display:block;font-size:.85rem;color:var(--mut);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+button{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;margin-top:12px}
+button.g{background:transparent;color:var(--mut);border:1px solid var(--bd);margin:0}
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{margin:0;background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.it{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.it img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--bd)}
+.it .b{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.tag{font-size:.72rem;color:var(--ac);font-weight:700;text-transform:uppercase}
+.pr{font-size:1.25rem;font-weight:800}
+.mut{color:var(--mut);font-size:.92rem}
+.empty{text-align:center;color:var(--mut);padding:30px 10px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.row{grid-template-columns:1fr}}
+</style></head>
+<body><div class="w"><div id="app"></div></div>
+<script id="data" type="application/json">{"address":"","phone":"","items":[]}</script>
+<script>
+let S;try{S=JSON.parse(document.getElementById('data').textContent)}catch(e){S={address:'',phone:'',items:[]}}
+let owner=false,art=null,filter='All',photo='';
+const $=s=>document.querySelector(s);
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const naira=n=>'₦'+Number(n||0).toLocaleString('en-NG');
+function wa(p){let d=String(p).replace(/\D/g,'');if(d.startsWith('0'))d='234'+d.slice(1);return 'https://wa.me/'+d}
+
+function render(){
+  const items=S.items.filter(i=>filter==='All'||i.type===filter);
+  let h=`<header><h1>ChuksTECH Computer</h1><p>Laptops &amp; laptop parts for sale</p>
+  <p>📍 ${S.address?esc(S.address):'Address coming soon'}</p>
+  ${S.phone?`<p>📞 <a href="${wa(S.phone)}">${esc(S.phone)}</a> (WhatsApp)</p>`:''}</header>`;
+  if(owner){
+    h+=`<div class="box"><h2>Shop details</h2>
+    <label>Shop address</label><input id="ad" value="${esc(S.address)}" placeholder="e.g. Shop 12, Computer Village, Abuja">
+    <label>Phone / WhatsApp number</label><input id="ph" value="${esc(S.phone)}" placeholder="e.g. 08012345678">
+    <button id="sd">Save details</button></div>
+    <div class="box"><h2>Post a laptop or part</h2>
+    <div class="row"><div><label>Type</label><select id="ty"><option>Laptop</option><option>Part</option></select></div>
+    <div><label>Amount (₦)</label><input id="pr" type="number" inputmode="numeric" placeholder="e.g. 250000"></div></div>
+    <label>Name</label><input id="nm" placeholder="e.g. HP EliteBook 840 G5 or 8GB DDR4 RAM">
+    <label>Details (optional)</label><textarea id="ds" rows="3" placeholder="Specs, condition, warranty..."></textarea>
+    <label>Photo (optional)</label><input id="ph2" type="file" accept="image/*">
+    <button id="add">Post item</button> <span id="msg" class="mut"></span></div>`;
+  }
+  h+=`<div class="tabs">${['All','Laptop','Part'].map(t=>`<button class="${filter===t?'on':''}" data-f="${t}">${t==='All'?'All':t+'s'}</button>`).join('')}</div>`;
+  h+=items.length?`<div class="grid">${items.map(i=>`<div class="it">${i.img?`<img src="${i.img}" alt="">`:''}<div class="b">
+    <span class="tag">${esc(i.type)}</span><strong>${esc(i.name)}</strong><span class="pr">${naira(i.price)}</span>
+    ${i.desc?`<span class="mut">${esc(i.desc)}</span>`:''}
+    ${owner?`<button class="g" data-del="${i.id}">Remove</button>`:''}</div></div>`).join('')}</div>`
+    :`<div class="empty">No items posted yet. Check back soon!</div>`;
+  $('#app').innerHTML=h;
+  document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
+  if(owner){
+    $('#sd').onclick=()=>{S.address=$('#ad').value.trim();S.phone=$('#ph').value.trim();save()};
+    $('#ph2').onchange=e=>shrink(e.target.files[0]);
+    $('#add').onclick=()=>{
+      const name=$('#nm').value.trim(),price=$('#pr').value;
+      if(!name||!price){$('#msg').textContent='Enter a name and amount.';return}
+      S.items.unshift({id:Date.now(),type:$('#ty').value,name,price:Number(price),desc:$('#ds').value.trim(),img:photo});
+      photo='';save();
+    };
+    document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+      if(confirm('Remove this item?')){S.items=S.items.filter(i=>String(i.id)!==b.dataset.del);save()}
+    });
+  }
+}
+function shrink(f){
+  if(!f)return;const r=new FileReader();
+  r.onload=()=>{const im=new Image();im.onload=()=>{
+    const k=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement('canvas');
+    c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    photo=c.toDataURL('image/jpeg',.72);$('#msg').textContent='Photo ready ✓'};im.src=r.result};
+  r.readAsDataURL(f);
+}
+async function save(){
+  if(!art)return;
+  try{
+    const d=document.documentElement.cloneNode(true);
+    d.querySelector('#data').textContent=JSON.stringify(S).replace(/</g,'\\u003c');
+    d.querySelector('#app').innerHTML='';
+    await art.publish('<!doctype html>\n'+d.outerHTML);
+  }catch(e){alert('Could not save. Please try again.')}
+}
+render();
+(async()=>{
+  try{
+    const u=await claude.use('user');art=await claude.use('artifact');
+    owner=!!(art&&u&&u.isOwner());
+    if(owner)render();
+  }catch(e){}
+})();
+</script></body></html>
